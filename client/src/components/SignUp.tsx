@@ -69,46 +69,6 @@ export default function SignUp() {
   const authenticationEndpoint = process.env.REACT_APP_IMAGEKITIO_AUTH_ENDPOINT;
   const [base64, setBase64] = useState<string>("");
 
-  const uploadImageHandler = () => {
-    const config = {
-      headers: {
-        "content-type": "multipart/form-data",
-      },
-    };
-
-    let base64file: string | undefined = "";
-
-    // file to base64 string
-    var reader = new FileReader();
-    reader.readAsDataURL(imageFile!);
-
-    reader.onload = () => {
-      base64file = reader.result?.toString();
-      console.log(base64file); //base64encoded string
-    };
-
-    Axios.get("http://localhost:4000/calculatesignature")
-      .then((res) => {
-        console.log(res.data);
-        Axios.post(
-          "https://upload.imagekit.io/api/v1/files/upload",
-          {
-            file: base64file,
-            publicKey: IMAGEKITIO_PUBLIC_KEY,
-            signature: res.data.signature,
-            expire: res.data.expire,
-            token: res.data.token,
-            fileName: uuidv4(),
-            useUniqueFileName: true,
-          },
-          config
-        )
-          .then((res) => console.log(res))
-          .catch((err) => console.log(err.response));
-      })
-      .catch((err) => console.log(err));
-  };
-
   const [imageFile, setImageFile] = useState<File>();
   const [userProfilePictureSettings, setUserProfilePictureSettings] =
     useState<string>("Default");
@@ -217,7 +177,10 @@ export default function SignUp() {
         Axios.post(
           "https://upload.imagekit.io/api/v1/files/upload",
           {
-            file: base64,
+            file:
+              base64.length > 0
+                ? base64
+                : "https://xsgames.co/randomusers/avatar.php?g=pixel",
             publicKey: IMAGEKITIO_PUBLIC_KEY,
             signature: res.data.signature,
             expire: res.data.expire,
@@ -227,11 +190,23 @@ export default function SignUp() {
           },
           config
         )
-          .then((res) => console.log(res))
+          .then((res) => {
+            Axios.post("http://localhost:4000/register", {
+              userProfilePicture: res.data.url,
+              username: data.username,
+              password: data.password,
+              email: data.email,
+            })
+              .then((res: AxiosResponse) => {
+                console.log(res);
+                handleOpen(res.data);
+              })
+              .catch((err) => handleOpen(err.response.data));
+          })
           .catch((err) => console.log(err.response));
       })
       .catch((err) => console.log(err));
-    // console.log(data);
+    console.log(data);
     // Axios.post("http://localhost:4000/register", {
     //   username: data.username,
     //   password: data.password,
@@ -392,7 +367,6 @@ export default function SignUp() {
               We accept images of only — <strong>JPEG / JPG / PNG</strong> type
             </Alert>
           ) : null}
-          <button onClick={uploadImageHandler}>Upload Image</button>
           <Box
             component="form"
             noValidate

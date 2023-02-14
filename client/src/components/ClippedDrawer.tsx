@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
@@ -16,23 +16,17 @@ import MailIcon from "@mui/icons-material/Mail";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 import ConversationHeader from "./ConversationHeader";
+import { myContext } from "../context/Context";
+import Logout from "./Logout";
 
 const drawerWidth = 500;
 
 export default function ClippedDrawer() {
+  const context = useContext(myContext);
+  console.log(context.userProfilePicture);
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      >
-        <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            Clipped drawer
-          </Typography>
-        </Toolbar>
-      </AppBar>
       <Drawer
         variant="permanent"
         sx={{
@@ -44,6 +38,37 @@ export default function ClippedDrawer() {
           },
         }}
       >
+        <AppBar
+          sx={{
+            // backgroundColor: "red",
+            position: "absolute",
+            width: "100%",
+            // zIndex: "1400",
+          }}
+        >
+          <Toolbar
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                columnGap: 2,
+              }}
+            >
+              <Avatar src={context.userProfilePicture} />
+              <Typography variant="h6" noWrap component="div">
+                {context.username}
+              </Typography>
+            </Box>
+            <Logout />
+          </Toolbar>
+        </AppBar>
         <Toolbar />
         <Box sx={{ overflow: "auto" }}>
           <List

@@ -92,7 +92,7 @@ export default function SignIn() {
       .then((res: AxiosResponse) => {
         console.log(res.data);
         if (res.data === "success") {
-          window.location.href = "/dashboard";
+          window.location.href = "/";
         } else {
           handleOpen(res.data);
         }

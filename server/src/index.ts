@@ -11,11 +11,14 @@ import { corsOptions } from "./config/corsOptions";
 import User from "./model/User";
 import UserVerification from "./model/UserVerification";
 import ResetPasswordVerification from "./model/ResetPasswordVerification";
+import Conversation from "./model/Conversation";
+import Message from "./model/Message";
 import { IUserInterface } from "./interfaces/IUserInterface";
 import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
 import { createHmac, sign } from "crypto";
 import path from "path";
+import bodyParser from "body-parser";
 import * as dotenv from "dotenv";
 dotenv.config({ path: path.join(__dirname, ".env") });
 
@@ -47,6 +50,10 @@ const LocalStrategy = passportLocal.Strategy;
 
 // Cross Origin Resource Sharing
 app.use(cors(corsOptions));
+
+// body parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // built-in middlware for json
 app.use(express.json());
@@ -383,7 +390,7 @@ app.post(
 
 // Routes
 app.post("/register", async (req: Request, res: Response) => {
-  const { username, password, email } = req?.body;
+  const { userProfilePicture, username, password, email } = req?.body;
   if (
     !username ||
     !password ||
@@ -404,9 +411,10 @@ app.post("/register", async (req: Request, res: Response) => {
     if (!doc) {
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new User({
-        username: username,
+        userProfilePicture,
+        username,
         password: hashedPassword,
-        email: email,
+        email,
         verified: false,
       });
       try {
@@ -449,7 +457,15 @@ app.get("/calculatesignature", (req: Request, res: Response) => {
 });
 
 app.get("/user", (req: Request, res: Response) => {
-  res.send(req.user);
+  const reqObj: any = req.user;
+  if (reqObj?.id) {
+    User.findOne({ _id: reqObj.id }, async (err: Error, doc: any) => {
+      if (err) throw err;
+      if (doc) res.send(doc);
+    });
+  } else {
+    res.send(req.user);
+  }
 });
 
 app.get("/logout", (req: Request, res: Response) => {
@@ -457,6 +473,51 @@ app.get("/logout", (req: Request, res: Response) => {
     if (err) throw err;
   });
   res.send("success");
+});
+
+app.post("/conversations", async (req: Request, res: Response) => {
+  const newConversation = new Conversation({
+    members: [req.body.senderId, req.body.receiverId],
+  });
+
+  try {
+    const savedConversation = await newConversation.save();
+    res.status(200).json(savedConversation);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.get("/conversations/:userId", async (req: Request, res: Response) => {
+  try {
+    const conversation = await Conversation.find({
+      members: { $in: [req.params.userId] },
+    });
+    res.status(200).json(conversation);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.post("/messages", async (req: Request, res: Response) => {
+  const newMessage = new Message(req.body);
+  try {
+    const savedMessage = await newMessage.save();
+    res.status(200).json(savedMessage);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.get("/messages/:conversationId", async (req: Request, res: Response) => {
+  try {
+    const messages = await Message.find({
+      conversationId: req.params.conversationId,
+    });
+    res.status(200).send(messages);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 app.listen(4000, () => {

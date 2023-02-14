@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const user = new mongoose.Schema({
+  userProfilePicture: {
+    type: String,
+    unique: true,
+  },
   username: {
     type: String,
     unique: true,

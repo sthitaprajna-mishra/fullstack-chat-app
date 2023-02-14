@@ -18,12 +18,13 @@ function App() {
       <Routes>
         {context ? (
           <>
+            <Route path="/" element={<ClippedDrawer />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route
               path="/requestnewpassword"
               element={<ForgotPasswordRequest />}
             />
-            <Route path="/chats" element={<ClippedDrawer />} />
+            {/* <Route path="/chats" element={<ClippedDrawer />} /> */}
           </>
         ) : (
           <>
