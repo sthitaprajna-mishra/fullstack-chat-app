@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
@@ -18,12 +18,30 @@ import Avatar from "@mui/material/Avatar";
 import ConversationHeader from "./ConversationHeader";
 import { myContext } from "../context/Context";
 import Logout from "./Logout";
+import Axios from "axios";
+import { IConversation } from "../interfaces/IConversation";
 
 const drawerWidth = 500;
 
 export default function ClippedDrawer() {
   const context = useContext(myContext);
-  console.log(context.userProfilePicture);
+  const [conversations, setConversations] = useState([]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const response = await Axios.get(
+          `http://localhost:4000/conversations/${context._id}`
+        );
+        setConversations(response.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchConversations();
+  }, [context._id]);
+
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
@@ -81,54 +99,15 @@ export default function ClippedDrawer() {
               },
             }}
           >
-            <ConversationHeader
-              recipientName="Karthick SP"
-              lastText="Let's connect tomorrow and solve the bug"
-            />
-            <Divider variant="inset" component="li" />
-            <ListItem alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                primary="Summer BBQ"
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      to Scott, Alex, Jennifer
-                    </Typography>
-                    {" — Wish I could come, but I'm out of town this…"}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-            <Divider variant="inset" component="li" />
-            <ListItem alignItems="flex-start">
-              <ListItemAvatar>
-                <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-              </ListItemAvatar>
-              <ListItemText
-                primary="Oui Oui"
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      sx={{ display: "inline" }}
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      Sandra Adams
-                    </Typography>
-                    {" — Do you have Paris recommendations? Have you ever…"}
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
+            {conversations.map((c: IConversation) => (
+              <div key={c.members.find((m) => m !== context._id)!}>
+                <ConversationHeader
+                  conversation={c}
+                  currentUserId={context._id!}
+                />
+                <Divider variant="inset" component="li" />
+              </div>
+            ))}
           </List>
         </Box>
       </Drawer>

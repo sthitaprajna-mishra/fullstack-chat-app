@@ -12,7 +12,6 @@ import { myContext } from "./context/Context";
 
 function App() {
   const context = useContext(myContext);
-  console.log(context);
   return (
     <div className="App">
       <Routes>

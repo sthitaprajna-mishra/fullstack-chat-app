@@ -468,6 +468,18 @@ app.get("/user", (req: Request, res: Response) => {
   }
 });
 
+app.get("/findUser/:id", (req: Request, res: Response) => {
+  const userId = req.params.id;
+  try {
+    User.findOne({ _id: userId }, async (err: Error, doc: any) => {
+      if (err) console.log(err);
+      if (doc) res.send(doc);
+    });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 app.get("/logout", (req: Request, res: Response) => {
   req.logout(function (err) {
     if (err) throw err;

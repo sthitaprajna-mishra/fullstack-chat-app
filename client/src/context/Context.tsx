@@ -16,7 +16,6 @@ export default function AuthContext(props: PropsWithChildren<any>) {
       .get("http://localhost:4000/user", { withCredentials: true })
       .then((res: AxiosResponse) => {
         setCurrentUser(res.data);
-        console.log(res);
       });
   }, []);
   return (
