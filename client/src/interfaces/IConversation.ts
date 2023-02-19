@@ -1,4 +1,4 @@
 export interface IConversation {
-  conversationId: string;
+  _id: string;
   members: string[];
 }

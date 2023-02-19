@@ -525,12 +525,28 @@ app.get("/messages/:conversationId", async (req: Request, res: Response) => {
   try {
     const messages = await Message.find({
       conversationId: req.params.conversationId,
-    });
+    }).sort({ createdAt: 1 });
     res.status(200).send(messages);
   } catch (err) {
     res.status(500).json(err);
   }
 });
+
+app.get(
+  "/messages/getlasttext/:conversationId",
+  async (req: Request, res: Response) => {
+    try {
+      const lastText = await Message.findOne({
+        conversationId: req.params.conversationId,
+      })
+        .sort({ createdAt: -1 })
+        .limit(1);
+      res.status(200).send(lastText);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+);
 
 app.listen(4000, () => {
   console.log("Server Started");
