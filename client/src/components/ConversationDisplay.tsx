@@ -35,7 +35,7 @@ const theme = createTheme();
 function ConversationDisplay({ conversationData }: Props) {
   const context = useContext(myContext);
   const [totalMessages, setTotalMessages] = useState<number>();
-  const scrollRef: any = useRef();
+  const scrollRef: any = useRef(null);
   const [messages, setMessages] = useState<any[]>();
 
   useEffect(() => {

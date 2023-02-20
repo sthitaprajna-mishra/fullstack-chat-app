@@ -304,6 +304,11 @@ export default function ClippedDrawer() {
             </Modal>
             <TextField
               value={text}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  sendText();
+                }
+              }}
               onChange={(e: any) => setText(e.target.value)}
               sx={{
                 flex: 5,
@@ -314,6 +319,7 @@ export default function ClippedDrawer() {
               multiline
             />
             <Button
+              type="submit"
               onClick={sendText}
               sx={{ mr: 1 }}
               variant="contained"

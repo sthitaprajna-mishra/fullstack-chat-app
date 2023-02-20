@@ -19,10 +19,6 @@ function App() {
           <>
             <Route path="/" element={<ClippedDrawer />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route
-              path="/requestnewpassword"
-              element={<ForgotPasswordRequest />}
-            />
             {/* <Route path="/chats" element={<ClippedDrawer />} /> */}
           </>
         ) : (
@@ -32,6 +28,7 @@ function App() {
           </>
         )}
 
+        <Route path="/requestnewpassword" element={<ForgotPasswordRequest />} />
         <Route path="user/verify" element={<VerifyEmail />} />
         <Route path="user/reset" element={<ResetPassword />} />
       </Routes>
