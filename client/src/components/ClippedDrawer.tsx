@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
@@ -25,6 +25,7 @@ import {
   TextField,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { io, Socket } from "socket.io-client";
 
 const EmojiIcon: string =
   require("../assets/emoji-very-happy-svgrepo-com.svg").default;
@@ -45,6 +46,20 @@ const style = {
 };
 
 export default function ClippedDrawer() {
+  const context = useContext(myContext);
+  const socket = useRef<Socket>();
+
+  useEffect(() => {
+    socket.current = io("ws://localhost:8900");
+  }, []);
+
+  useEffect(() => {
+    socket.current?.emit("addUser", context._id);
+    socket.current?.on("getUsers", (users) => {
+      console.log(users);
+    });
+  }, [context]);
+
   const [text, setText] = useState<string>("");
   const [emojiSearch, setEmojiSearch] = useState<string>("");
   const [emojisList, setEmojisList] = useState<any[]>();
@@ -52,7 +67,6 @@ export default function ClippedDrawer() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const context = useContext(myContext);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationData, setSelectedConversationData] = useState({
     userProfilePicture: "",
