@@ -15,17 +15,16 @@ import Axios from "axios";
 import { IConversation } from "../interfaces/IConversation";
 import ConversationDisplay from "./ConversationDisplay";
 import SendIcon from "@mui/icons-material/Send";
-import {
-  Button,
-  Input,
-  ListItem,
-  ListItemAvatar,
-  Modal,
-  Popover,
-  TextField,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
+import ForumIcon from "@mui/icons-material/Forum";
+import Diversity3Icon from "@mui/icons-material/Diversity3";
+import { Button, Modal, Tab, Tabs, TextField } from "@mui/material";
 import { io, Socket } from "socket.io-client";
+import TabPanel from "./TabPanel";
+import OnlineFriends from "./OnlineFriends";
+import { ListItem, ListItemAvatar, ListItemText } from "@mui/material";
+
+const theme = createTheme();
 
 const EmojiIcon: string =
   require("../assets/emoji-very-happy-svgrepo-com.svg").default;
@@ -45,7 +44,21 @@ const style = {
   p: 1,
 };
 
+function a11yProps(index: number) {
+  return {
+    id: `full-width-tab-${index}`,
+    "aria-controls": `full-width-tabpanel-${index}`,
+  };
+}
+
 export default function ClippedDrawer() {
+  const [value, setValue] = React.useState(0);
+  const [onlineFriendsList, setOnlineFriendsList] = useState<any>([]);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
+
   const context = useContext(myContext);
   const socket = useRef<Socket>();
 
@@ -55,8 +68,10 @@ export default function ClippedDrawer() {
 
   useEffect(() => {
     socket.current?.emit("addUser", context._id);
-    socket.current?.on("getUsers", (users) => {
-      console.log(users);
+    socket.current?.on("getUsers", async (users) => {
+      setOnlineFriendsList(
+        users.filter((user: any) => user.userId !== context._id)
+      );
     });
   }, [context]);
 
@@ -96,13 +111,14 @@ export default function ClippedDrawer() {
           `http://localhost:4000/conversations/${context._id}`
         );
         setConversations(response.data);
+        console.log(response);
       } catch (err) {
         console.log(err);
       }
     };
 
     fetchConversations();
-  }, [conversations]);
+  }, []);
 
   const handleEmojiSearch = (e: any) => {
     const value = e.target.value;
@@ -174,29 +190,58 @@ export default function ClippedDrawer() {
           </Toolbar>
         </AppBar>
         <Toolbar />
-        <Box sx={{ overflow: "auto" }}>
-          <List
-            sx={{
-              width: "100%", //maxWidth: 360,
-              bgcolor: "background.paper",
-              "& .MuiListItem-root:hover": {
-                bgcolor: "#ebf1ef",
-                cursor: "pointer",
-              },
-            }}
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            indicatorColor="secondary"
+            textColor="secondary"
+            variant="fullWidth"
+            aria-label="full width tabs example"
           >
-            {conversations.map((c: IConversation) => (
-              <div key={c.members.find((m) => m !== context._id)!}>
-                <ConversationHeader
-                  setSelectedConversationData={setSelectedConversationData}
-                  conversation={c}
-                  currentUserId={context._id!}
-                />
-                <Divider variant="inset" component="li" />
-              </div>
-            ))}
-          </List>
+            <Tab icon={<ForumIcon />} {...a11yProps(0)} />
+            <Tab
+              icon={<Diversity3Icon />}
+              iconPosition="start"
+              label={`(${onlineFriendsList.length})`}
+              {...a11yProps(1)}
+            />
+            <Tab label="Item Three" {...a11yProps(2)} />
+          </Tabs>
         </Box>
+        <TabPanel value={value} index={0} dir={theme.direction}>
+          <Box sx={{ overflow: "auto" }}>
+            <List
+              sx={{
+                width: "100%", //maxWidth: 360,
+                bgcolor: "background.paper",
+                "& .MuiListItem-root:hover": {
+                  bgcolor: "#ebf1ef",
+                  cursor: "pointer",
+                },
+              }}
+            >
+              {conversations.map((c: IConversation) => (
+                <div key={c.members.find((m) => m !== context._id)!}>
+                  <ConversationHeader
+                    setSelectedConversationData={setSelectedConversationData}
+                    conversation={c}
+                    currentUserId={context._id!}
+                  />
+                  <Divider variant="inset" component="li" />
+                </div>
+              ))}
+            </List>
+          </Box>
+        </TabPanel>
+        <TabPanel value={value} index={1} dir={theme.direction}>
+          <OnlineFriends onlineFriendsList={onlineFriendsList} />
+        </TabPanel>
       </Drawer>
       <Box
         component="main"
