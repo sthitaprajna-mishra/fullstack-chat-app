@@ -20,6 +20,7 @@ import { createHmac, sign } from "crypto";
 import path from "path";
 import bodyParser from "body-parser";
 import * as dotenv from "dotenv";
+import FriendRequest from "./model/FriendRequest";
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 // connect to MongoDB
@@ -532,6 +533,17 @@ app.get("/messages/:conversationId", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/searchUsers/:userInput", async (req: Request, res: Response) => {
+  try {
+    const searchResults = await User.find({
+      username: new RegExp(req.params.userInput, "i"),
+    });
+    res.status(200).send(searchResults);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 app.get(
   "/messages/getlasttext/:conversationId",
   async (req: Request, res: Response) => {
@@ -542,6 +554,72 @@ app.get(
         .sort({ createdAt: -1 })
         .limit(1);
       res.status(200).send(lastText);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+);
+
+app.post("/acceptfriendrequest", async (req: Request, res: Response) => {
+  const { requestedBy, requestedTo } = req.body;
+  try {
+    await User.findByIdAndUpdate(requestedBy, {
+      $addToSet: { friends: requestedTo },
+    });
+    await User.findByIdAndUpdate(requestedTo, {
+      $addToSet: { friends: requestedBy },
+    });
+    await FriendRequest.findOneAndUpdate(
+      { requestedBy, requestedTo },
+      { accepted: true }
+    );
+    res.status(200).send("success");
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.post("/sendfriendrequest", async (req: Request, res: Response) => {
+  const { requestedBy, requestedTo } = req.body;
+  const newFriendRequest = new FriendRequest({
+    requestedBy,
+    requestedTo,
+    accepted: false,
+  });
+  try {
+    const response = await newFriendRequest.save();
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+app.get(
+  "/pendingfriendrequests/:requestedBy",
+  async (req: Request, res: Response) => {
+    const requestedBy = req.params.requestedBy;
+    try {
+      const response = await FriendRequest.find({
+        requestedBy,
+        accepted: false,
+      });
+      res.status(200).json(response);
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  }
+);
+
+app.get(
+  "/receivedfriendrequests/:requestedTo",
+  async (req: Request, res: Response) => {
+    const requestedTo = req.params.requestedTo;
+    try {
+      const response = await FriendRequest.find({
+        requestedTo,
+        accepted: false,
+      });
+      res.status(200).json(response);
     } catch (err) {
       res.status(500).json(err);
     }

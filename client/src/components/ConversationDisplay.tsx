@@ -13,6 +13,7 @@ import Message from "./Message";
 import { myContext } from "../context/Context";
 
 type Props = {
+  setRefreshConversationHeader: any;
   conversationData: any;
 };
 
@@ -32,7 +33,10 @@ const months: string[] = [
 
 const theme = createTheme();
 
-function ConversationDisplay({ conversationData }: Props) {
+function ConversationDisplay({
+  setRefreshConversationHeader,
+  conversationData,
+}: Props) {
   const context = useContext(myContext);
   const [totalMessages, setTotalMessages] = useState<number>();
   const scrollRef: any = useRef(null);
@@ -52,6 +56,7 @@ function ConversationDisplay({ conversationData }: Props) {
           });
           scrollRef.current = null;
           setTotalMessages(response.data.length);
+          setRefreshConversationHeader((prev: any) => !prev);
         } catch (err) {
           console.log(err);
         }
@@ -172,10 +177,6 @@ function ConversationDisplay({ conversationData }: Props) {
             }
           })
         ) : (
-          //   <>
-          //     <Message currentUser={context._id} messageData={messages[0]} />
-          //     <Message currentUser={context._id} messageData={messages[1]} />
-          //   </>
           <Box sx={{ my: 2 }}>
             {[...new Array(12)]
               .map(

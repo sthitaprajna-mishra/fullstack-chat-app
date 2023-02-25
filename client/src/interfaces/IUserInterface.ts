@@ -4,5 +4,6 @@ export interface IUserInterface {
   username: string;
   password: string;
   email: string;
+  friends?: string[];
   verified?: Boolean;
 }

@@ -18,11 +18,15 @@ import SendIcon from "@mui/icons-material/Send";
 import { createTheme } from "@mui/material/styles";
 import ForumIcon from "@mui/icons-material/Forum";
 import Diversity3Icon from "@mui/icons-material/Diversity3";
-import { Button, Modal, Tab, Tabs, TextField } from "@mui/material";
+import { Button, Fab, Modal, Tab, Tabs, TextField } from "@mui/material";
 import { io, Socket } from "socket.io-client";
 import TabPanel from "./TabPanel";
 import OnlineFriends from "./OnlineFriends";
 import { ListItem, ListItemAvatar, ListItemText } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import FriendRequest from "./FriendRequest";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import SearchUsers from "./SearchUsers";
 
 const theme = createTheme();
 
@@ -67,10 +71,15 @@ export default function ClippedDrawer() {
   }, []);
 
   useEffect(() => {
+    console.log(context.friends);
     socket.current?.emit("addUser", context._id);
     socket.current?.on("getUsers", async (users) => {
       setOnlineFriendsList(
-        users.filter((user: any) => user.userId !== context._id)
+        users.filter(
+          (user: any) =>
+            user.userId !== context._id &&
+            context.friends!.includes(user.userId)
+        )
       );
     });
   }, [context]);
@@ -82,6 +91,8 @@ export default function ClippedDrawer() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const [refreshConversationHeader, setRefreshConversationHeader] =
+    useState<boolean>();
   const [conversations, setConversations] = useState([]);
   const [selectedConversationData, setSelectedConversationData] = useState({
     userProfilePicture: "",
@@ -118,7 +129,7 @@ export default function ClippedDrawer() {
     };
 
     fetchConversations();
-  }, []);
+  }, [refreshConversationHeader]);
 
   const handleEmojiSearch = (e: any) => {
     const value = e.target.value;
@@ -138,6 +149,7 @@ export default function ClippedDrawer() {
         text: text,
       });
       setText("");
+      setRefreshConversationHeader((prev) => !prev);
       console.log(res);
     } catch (err) {
       console.log(err);
@@ -186,7 +198,17 @@ export default function ClippedDrawer() {
                 {context.username}
               </Typography>
             </Box>
-            <Logout />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                columnGap: 3,
+              }}
+            >
+              <FriendRequest />
+              <Logout />
+            </Box>
           </Toolbar>
         </AppBar>
         <Toolbar />
@@ -211,7 +233,7 @@ export default function ClippedDrawer() {
               label={`(${onlineFriendsList.length})`}
               {...a11yProps(1)}
             />
-            <Tab label="Item Three" {...a11yProps(2)} />
+            <Tab icon={<PersonAddIcon />} {...a11yProps(2)} />
           </Tabs>
         </Box>
         <TabPanel value={value} index={0} dir={theme.direction}>
@@ -238,9 +260,19 @@ export default function ClippedDrawer() {
               ))}
             </List>
           </Box>
+          <Fab
+            sx={{ position: "absolute", bottom: 50, left: 400 }}
+            color="secondary"
+            aria-label="edit"
+          >
+            <EditIcon />
+          </Fab>
         </TabPanel>
         <TabPanel value={value} index={1} dir={theme.direction}>
           <OnlineFriends onlineFriendsList={onlineFriendsList} />
+        </TabPanel>
+        <TabPanel value={value} index={2} dir={theme.direction}>
+          <SearchUsers />
         </TabPanel>
       </Drawer>
       <Box
@@ -254,7 +286,10 @@ export default function ClippedDrawer() {
         }}
       >
         {selectedConversationData ? (
-          <ConversationDisplay conversationData={selectedConversationData} />
+          <ConversationDisplay
+            setRefreshConversationHeader={setRefreshConversationHeader}
+            conversationData={selectedConversationData}
+          />
         ) : (
           <>
             <Typography paragraph>

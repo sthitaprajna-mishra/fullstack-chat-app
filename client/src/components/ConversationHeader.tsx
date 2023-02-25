@@ -82,14 +82,13 @@ export default function ConversationHeader({
       let hours = new Date(createdAt).getHours().toString();
       let minutes = new Date(createdAt).getMinutes().toString();
 
-      if (parseInt(hours) > 12) hours = (parseInt(hours) - 12).toString();
-      if (parseInt(hours) == 0) hours = (12).toString();
-
       if (parseInt(minutes) < 10) minutes = "0".concat(minutes);
 
       if (parseInt(hours) > 12) {
+        hours = (parseInt(hours) - 12).toString();
         setLastTextTime(`${hours}:${minutes} pm`);
       } else {
+        if (parseInt(hours) == 0) hours = (12).toString();
         setLastTextTime(`${hours}:${minutes} am`);
       }
     }

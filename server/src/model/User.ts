@@ -16,6 +16,9 @@ const user = new mongoose.Schema({
     type: String,
     unique: [true, "There is already an account with this email address."],
   },
+  friends: {
+    type: Array,
+  },
   verified: {
     type: Boolean,
     required: false,
